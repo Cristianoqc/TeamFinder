@@ -36,10 +36,11 @@ class UserServiceTest {
 
     @Test
     void userRegister() {
-        String userAccount = "yupidog";
+        String userAccount = "sadhiuw";
         String userPassword = "12345678";
         String checkPassword = "12345678";
-        long result = userService.userRegister(userAccount, userPassword, checkPassword);
+        String planetCode = "555";
+        long result = userService.userRegister(userAccount, userPassword, checkPassword, planetCode);
         Assertions.assertTrue(result > 0);
     }
 }
