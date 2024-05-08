@@ -2,8 +2,9 @@ package com.yupi.usercenterbackend.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.yupi.usercenterbackend.common.ErrorCode;
-import com.yupi.usercenterbackend.common.ResultUtils;
 import com.yupi.usercenterbackend.exception.BusinessException;
 import com.yupi.usercenterbackend.model.domain.User;
 import com.yupi.usercenterbackend.service.UserService;
@@ -11,12 +12,17 @@ import com.yupi.usercenterbackend.mapper.UserMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static com.yupi.usercenterbackend.model.constant.UserConstant.USER_LOGIN_STATE;
 
@@ -148,19 +154,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if (originUser == null){
             throw new BusinessException(ErrorCode.NOT_LOGIN, "用户未登录");
         }
-        User safeyUser = new User();
-        safeyUser.setId(originUser.getId());
-        safeyUser.setUsername(originUser.getUsername());
-        safeyUser.setUserAccount(originUser.getUserAccount());
-        safeyUser.setAvatarUrl(originUser.getAvatarUrl());
-        safeyUser.setGender(originUser.getGender());
-        safeyUser.setPhone(originUser.getPhone());
-        safeyUser.setEmail(originUser.getEmail());
-        safeyUser.setUserRole(originUser.getUserRole());
-        safeyUser.setUserStatus(originUser.getUserStatus());
-        safeyUser.setCreateTime(originUser.getCreateTime());
-        safeyUser.setPlanetCode(originUser.getPlanetCode());
-        return safeyUser;
+        User safetyUser = new User();
+        safetyUser.setId(originUser.getId());
+        safetyUser.setUsername(originUser.getUsername());
+        safetyUser.setUserAccount(originUser.getUserAccount());
+        safetyUser.setAvatarUrl(originUser.getAvatarUrl());
+        safetyUser.setGender(originUser.getGender());
+        safetyUser.setPhone(originUser.getPhone());
+        safetyUser.setEmail(originUser.getEmail());
+        safetyUser.setUserRole(originUser.getUserRole());
+        safetyUser.setUserStatus(originUser.getUserStatus());
+        safetyUser.setCreateTime(originUser.getCreateTime());
+        safetyUser.setPlanetCode(originUser.getPlanetCode());
+        safetyUser.setTags(originUser.getTags());
+        return safetyUser;
     }
 
     /**
@@ -173,6 +180,47 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         return 1;
     }
 
+
+    /**
+     * 根据标签搜索用户
+     * @param tagNameList 用户必须拥有的标签
+     * @return
+     */
+    @Override
+    public List<User> searchUsersByTags(List<String> tagNameList){
+        if(CollectionUtils.isEmpty(tagNameList)){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        // SQL查询
+//        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+//        // 拼接 and 查询
+//        for (String tagName: tagNameList){
+//            queryWrapper = queryWrapper.like("tags", tagName);
+//        }
+//        List<User> userList = userMapper.selectList(queryWrapper);
+//        return userList.stream().map(this::getSafetyUser).collect(Collectors.toList());
+
+        // 内存查询
+        // 1.先查询所有用户
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        List<User> userList = userMapper.selectList(queryWrapper);
+        Gson gson = new Gson();
+        // 2.在内存中判断是否包含要求的标签
+        return userList.stream().filter(user -> {
+            String tagsStr = user.getTags();
+            if (StringUtils.isBlank(tagsStr)){
+                return false;
+            }
+            Set<String> tempTagNameSet = gson.fromJson(tagsStr, new TypeToken<Set<String>>(){}.getType());
+            for (String tagName : tagNameList) {
+                if(!tempTagNameSet.contains(tagName)){
+                    return false;
+                }
+            }
+            return true;
+        }).map(this::getSafetyUser).collect(Collectors.toList());
+
+    }
 
 }
 
