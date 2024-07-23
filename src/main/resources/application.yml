@@ -6,13 +6,25 @@ spring:
     url: jdbc:mysql://localhost:3306/yupi
     username: root
     password: 123456
+  # redis 配置
+  redis:
+    port: 6379
+    host: localhost
+    database: 1
   # session失效时间
   session:
     timeout: 86400
+    store-type: redis
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
 server:
   port: 8080
   servlet:
     context-path: /api
+    session:
+      cookie:
+        domain: localhost
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: false
@@ -22,3 +34,22 @@ mybatis-plus:
       logic-delete-field: isDelete
       logic-not-delete-value: 0
       logic-delete-value: 1
+knife4j:
+  basic:
+    enable: true
+  openapi:
+    title: Knife官方文档
+    description: 测试
+    email: aaa
+    concat: dada
+    url:
+    version: v4.0
+    license: Apache 2.0
+    license-url: https
+    terms-of-service-url: https
+    group:
+      test1:
+        group-name: 分组名称
+        api-rule: package
+        api-rule-resources:
+          - com.knife4j.demo.new3
