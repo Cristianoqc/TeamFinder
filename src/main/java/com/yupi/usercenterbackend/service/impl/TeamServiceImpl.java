@@ -291,7 +291,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数为空");
         }
         Long teamId = teamQuitRequest.getTeamId();
-        Team team = getTeamById(teamId);
+        Team team = this.getTeamById(teamId);
         long userId = loginUser.getId();
         UserTeam userTeam = new UserTeam();
         userTeam.setUserId(userId);
@@ -339,7 +339,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
     public boolean deleteTeam(long id, User loginUser) {
         Team team = getTeamById(id);
         if (!team.getUserId().equals(loginUser.getId())){
-            throw new BusinessException(ErrorCode.NO_AUTH, "只有队长才能删除队伍");
+            throw new BusinessException(ErrorCode.NO_AUTH, "只有队长才能解散队伍");
         }
         // 移除所有加入队伍的关联信息
         QueryWrapper<UserTeam> userTeamQueryWrapper = new QueryWrapper<>();
